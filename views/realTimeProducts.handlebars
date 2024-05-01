@@ -1,0 +1,55 @@
+<!-- realTimeProducts.handlebars -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos en Tiempo Real</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Productos en Tiempo Real</h1>
+    <h2>Lista de Productos</h2>
+    <ul id="lista-productos">
+        {{#each listaDeProductos}}
+            <li>{{nombre}} <button onclick="eliminarProducto('{{id}}')">Eliminar</button></li>
+        {{/each}}
+    </ul>
+    <h2>Agregar Nuevo Producto</h2>
+    <form id="formulario-producto">
+        <label for="nombre">Nombre del Producto:</label>
+        <input type="text" id="nombre" name="nombre">
+        <button type="submit">Agregar Producto</button>
+    </form>
+    <script>
+        const socket = io();
+
+        // Función para eliminar un producto
+        function eliminarProducto(idProducto) {
+            socket.emit('eliminarProducto', idProducto);
+        }
+
+        // Escuchar eventos de productos desde el servidor
+        socket.on('productos', (productos) => {
+            const listaProductos = document.getElementById('lista-productos');
+            listaProductos.innerHTML = '';
+
+            productos.forEach(producto => {
+                const li = document.createElement('li');
+                li.textContent = producto.nombre;
+                listaProductos.appendChild(li);
+            });
+        });
+
+        // Enviar el formulario para agregar un nuevo producto
+        const formularioProducto = document.getElementById('formulario-producto');
+        formularioProducto.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const nombreProducto = document.getElementById('nombre').value;
+            socket.emit('crearProducto', { nombre: nombreProducto });
+            formularioProducto.reset();
+        });
+    </script>
+</body>
+</html>
